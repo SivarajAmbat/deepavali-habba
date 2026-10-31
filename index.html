@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deepavali Habba – Bangalore</title>
+  <meta name="description" content="Photo album of Deepavali Habba – Bangalore, 30 October 2026, Night Owl Sky Lounge.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%235C0A14'/%3E%3Cpath d='M50 18 L58 42 L82 50 L58 58 L50 82 L42 58 L18 50 L42 42 Z' fill='%23F2B33D'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ACCESS SCREEN (landing page) -->
+<section class="gate" id="gate" aria-labelledby="gateTitle" hidden>
+  <div class="gate-glow" aria-hidden="true"></div>
+  <div class="gate-main">
+    <div class="gate-card" id="gateCard">
+      <div class="gate-top" aria-hidden="true">
+        <svg class="diya" viewBox="0 0 64 64">
+          <path d="M8 34 Q32 56 56 34 Q52 46 32 48 Q12 46 8 34Z" fill="#B5121B"/>
+          <path d="M14 34 Q32 50 50 34" fill="none" stroke="#F2B33D" stroke-width="2"/>
+          <path d="M32 6 Q40 18 32 30 Q24 18 32 6Z" fill="#FFB347"/>
+          <path d="M32 14 Q36 22 32 28 Q28 22 32 14Z" fill="#FFF1B8"/>
+        </svg>
+      </div>
+      <p class="gate-eyebrow">Photo album</p>
+      <h1 class="gate-title" id="gateTitle">Deepavali Habba</h1>
+      <p class="gate-city">Bangalore</p>
+
+      <div class="gate-divider" aria-hidden="true"><span></span><i></i><span></span></div>
+
+      <dl class="gate-facts">
+        <div><dt>Date</dt><dd>30 October 2026</dd></div>
+        <div><dt>Venue</dt><dd>Night Owl Sky Lounge</dd></div>
+      </dl>
+
+      <form class="gate-form" id="gateForm" autocomplete="off">
+        <label class="gate-label" for="gatePassword">Enter the album password</label>
+        <div class="gate-field">
+          <input class="gate-input" id="gatePassword" type="password" autocomplete="off" spellcheck="false" required>
+          <button class="gate-toggle" id="gateToggle" type="button" aria-label="Show password" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <p class="gate-error" id="gateError" role="alert" hidden></p>
+        <button class="gate-btn" id="gateSubmit" type="submit">Enter the celebration</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ALBUM -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M32 6 Q40 18 32 30 Q24 18 32 6Z" fill="#F2B33D"/>
+        <path d="M6 32 Q18 24 30 32 Q18 40 6 32Z" fill="#F2B33D" opacity=".7"/>
+        <path d="M58 32 Q46 24 34 32 Q46 40 58 32Z" fill="#F2B33D" opacity=".7"/>
+        <circle cx="32" cy="36" r="6" fill="#B5121B"/>
+      </svg>
+      <div>
+        <div class="brand-name">Deepavali Habba – Bangalore</div>
+        <div class="brand-sub">30 October 2026</div>
+      </div>
+    </div>
+    <button type="button" class="btn-ghost" id="refreshBtn">Refresh</button>
+  </header>
+
+  <main class="main">
+    <div class="status-line" id="loading">Loading photographs…</div>
+    <div class="error-box" id="errorBox" hidden></div>
+
+    <section id="library">
+      <div class="page-head">
+        <h2 class="page-title">All photographs</h2>
+        <p class="count-line" id="countLine"></p>
+      </div>
+
+      <div class="selection-bar" id="selectionBar" hidden>
+        <span id="selCount">0 selected</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn-secondary" id="selAll">Select all</button>
+        <button type="button" class="btn-secondary" id="selClear">Clear</button>
+        <button type="button" class="btn-primary" id="downloadBtn">Download</button>
+      </div>
+
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty" hidden>Photographs from the event will appear here soon.</div>
+      <p class="footnote">Select photographs to download several at once.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Deepavali Habba – Bangalore</span>
+    <span>30 October 2026</span>
+  </footer>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="lb-top">
+    <span id="lbCounter"></span>
+    <button type="button" class="lb-btn" id="lbClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="lb-stage">
+    <button type="button" class="lb-nav prev" id="lbPrev" aria-label="Previous photo">‹</button>
+    <img id="lbImg" alt="Photograph">
+    <button type="button" class="lb-nav next" id="lbNext" aria-label="Next photo">›</button>
+  </div>
+  <div class="lb-bottom">
+    <a class="btn-secondary" id="lbDownload" href="#" download>Download</a>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
