@@ -151,35 +151,78 @@
 
   /* ---------- Data ---------- */
 
+  // Photos are found automatically: every image in the images/ folder is shown.
+  // On GitHub Pages the folder is read through the GitHub API (public repositories).
+  // manifest.json is optional and only adds titles or extra photos.
+  const IMAGE_DIR = 'images';
+  const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif)$/i;
+
+  function githubRepoFromSite() {
+    const host = location.hostname;
+    if (!host.endsWith('.github.io')) return null;
+    const owner = host.slice(0, -'.github.io'.length);
+    // Project sites live at owner.github.io/repo/; user sites at owner.github.io/ (maybe with a file name).
+    const firstSegment = location.pathname.split('/').filter(Boolean)[0];
+    const isProjectSite = firstSegment && !/\.html?$/i.test(firstSegment);
+    return { owner, repo: isProjectSite ? firstSegment : `${owner}.github.io` };
+  }
+
+  async function discoverImages() {
+    const gh = githubRepoFromSite();
+    if (!gh) return [];
+    const url = `https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/${IMAGE_DIR}`;
+    const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(`The images folder could not be read (HTTP ${res.status}).`);
+    const items = await res.json();
+    return items
+      .filter((i) => i.type === 'file' && IMAGE_EXT.test(i.name))
+      .map((i) => ({ file: `${IMAGE_DIR}/${i.name}` }));
+  }
+
+  async function readManifest() {
+    try {
+      const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function loadManifest(fromRefresh) {
     ui.loading.hidden = false;
     ui.errorBox.hidden = true;
-    try {
-      const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`manifest.json could not be loaded (HTTP ${res.status}).`);
-      const data = await res.json();
-      if (!data || !Array.isArray(data.photos)) {
-        throw new Error('manifest.json must contain a "photos" array.');
-      }
-      state.event = data.event || {};
-      state.photos = data.photos
-        .filter((p) => p && p.file)
-        .map((p) => ({ file: String(p.file), title: p.title || prettyName(p.file) }))
-        .sort((a, b) =>
-          fileName(a.file).localeCompare(fileName(b.file), undefined, { numeric: true, sensitivity: 'base' }));
-      state.selected = new Set(
-        [...state.selected].filter((f) => state.photos.some((p) => p.file === f))
-      );
-      ui.loading.hidden = true;
-      render();
-      if (fromRefresh) showToast('Photographs refreshed');
-    } catch (err) {
-      ui.loading.hidden = true;
+
+    const [manifest, discovered] = await Promise.all([
+      readManifest(),
+      discoverImages().then((list) => ({ list, error: null }), (error) => ({ list: [], error })),
+    ]);
+
+    const listed = manifest && Array.isArray(manifest.photos) ? manifest.photos : [];
+    state.event = (manifest && manifest.event) || {};
+
+    // Manifest entries first (they can carry titles), then every other image in the folder.
+    const byFile = new Map();
+    [...listed, ...discovered.list].forEach((p) => {
+      if (!p || !p.file) return;
+      const file = String(p.file).replace(/^\.?\//, '');
+      if (!byFile.has(file)) byFile.set(file, { file, title: p.title || prettyName(file) });
+    });
+
+    state.photos = [...byFile.values()].sort((a, b) =>
+      fileName(a.file).localeCompare(fileName(b.file), undefined, { numeric: true, sensitivity: 'base' }));
+    state.selected = new Set(
+      [...state.selected].filter((f) => state.photos.some((p) => p.file === f))
+    );
+
+    ui.loading.hidden = true;
+    if (!state.photos.length && discovered.error) {
       ui.errorBox.hidden = false;
       ui.errorBox.textContent =
-        `Could not load photographs. ${err.message} ` +
-        'Make sure manifest.json is in the site root and the site is opened over http(s), not as a local file.';
+        `Could not load photographs. ${discovered.error.message} Please try again in a few minutes.`;
     }
+    render();
+    if (fromRefresh) showToast('Photographs refreshed');
   }
 
   /* ---------- Rendering ---------- */
@@ -200,7 +243,7 @@
     return `
       <div class="tile" role="button" tabindex="0" data-index="${i}" data-file="${esc(p.file)}"
            aria-label="Open ${esc(p.title)}">
-        <img src="${esc(p.file)}" alt="${esc(p.title)}" loading="lazy" decoding="async">
+        <img src="${esc(encodeURI(p.file))}" alt="${esc(p.title)}" loading="lazy" decoding="async">
         <span class="missing-label">Image not found</span>
         <button type="button" class="tile-check" aria-label="Select photograph" aria-pressed="false">✓</button>
       </div>`;
